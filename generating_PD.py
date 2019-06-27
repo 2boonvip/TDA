@@ -15,12 +15,30 @@ betti_sequence_range = 1/betti_sequence_number #betti系列を生成する際の
 
 channels = ['channel1','channel2','channel3','channel4','channel5','channel6','channel7','channel8']#対象チャンネル名
 
+<<<<<<< HEAD
+=======
+betti_sequence_range = 0.05 #betti系列を生成する際のデータ間隔
+
+data_ranges = [(2287,4401),(6423,8217),(12534,14521),(17995,19729),(23545,25402),
+               (28883,30840),(33733,35397),(37023,38752),(42750,44576),(48325,50030),
+               (53862,55616),(59786,61578)]
+path = "1_raw_data_13-12_22.03.16.txt" #対象データファイル名を指定
+channels = ['channel1']#対象チャンネル名
+picture_names = ['1_1output.png','2_1output.png','3_1output.png','4_1output.png',
+                 '5_1output.png','6_1output.png','1_2output.png','2_2output.png',
+                 '3_2output.png','4_2output.png','5_2output.png','6_2output.png',] 
+#picture_names = ['2_1output.png','3_1output.png','6_1output.png','2_2output.png','3_2output.png','6_2output.png']#出力画像ファイル名
+>>>>>>> af2ea8e5afbf630187550108f75019362517a0de
 output_text_name = ['']
 
 
 #対象データ成型
 def data_processing(path): 
+<<<<<<< HEAD
     data = pandas.read_csv(path)
+=======
+    data = pandas.read_table(path)
+>>>>>>> af2ea8e5afbf630187550108f75019362517a0de
     return data
 
 #3次元遅れ座標生成           
@@ -46,7 +64,11 @@ def display_3D(pointcloud):
     plt.show()
     
     
+<<<<<<< HEAD
 def output_PD_picture(pd,pic_name):
+=======
+def output_picture(pd,pic_name):
+>>>>>>> af2ea8e5afbf630187550108f75019362517a0de
     pd.histogram((0, 1), 256).plot(colorbar={"type": "log"})#Birthの表示範囲を指定
     plt.savefig(pic_name)#出力ファイル名
 
@@ -62,12 +84,15 @@ def output_PD_text(pd):
     for birth,death in zip(pd.births,pd.deaths):
         with open(txt_name,'a') as f:
             f.write('{0},{1}\n'.format(birth,death))
+<<<<<<< HEAD
             
 def output_betti_text(betti_sequence,txt_name):
     with open(txt_name,'w') as f:
         for i in betti_sequence:
             f.write('{0} '.format(i))
 
+=======
+>>>>>>> af2ea8e5afbf630187550108f75019362517a0de
    
 #データを0-1区間で正規化
 def normalization(pd):
@@ -94,7 +119,11 @@ def calc_death_birth(pd,death_birth,index):
 def generating_betti_sequence(pd):
     betti_sequence = []
     for i in range(len(pd)):
+<<<<<<< HEAD
         for j in range(betti_sequence_number):
+=======
+        for j in range(int(1/betti_sequence_range)):
+>>>>>>> af2ea8e5afbf630187550108f75019362517a0de
             tmp = 0
             for k in range(len(pd[i].deaths)):
                 if pd[i].births[k] <= betti_sequence_range*j and pd[i].deaths[k] >= betti_sequence_range*j:
@@ -104,6 +133,7 @@ def generating_betti_sequence(pd):
     return betti_sequence
 
 #以下実行部
+<<<<<<< HEAD
 for i in range(1,7):
     files = glob.glob("./datasets/status{0}/*".format(i))
     
@@ -138,3 +168,39 @@ for i in range(1,7):
     
             
     print("Done")
+=======
+          
+data = data_processing(path)
+death_birth = []
+
+
+for i in range(len(data_ranges)):
+#    for channel,pic_name,txt_name in zip(channels,picture_names,output_text_name):
+
+#        data = data_processing(path)
+        
+        pointcloud = delay(data,'channel1',data_ranges[i])
+    
+        #PD生成・保存
+        hc.PDList.from_alpha_filtration(pointcloud, 
+                                        save_to="pointcloud.idiagram",
+                                        save_boundary_map=True)
+        
+        pdlist = hc.PDList("pointcloud.idiagram")
+        
+        pd = [pdlist.dth_diagram(i) for i in range(3)] #0~2次元のPDを生成
+        pd = normalization(pd)#データの正規化
+        betti_sequence = generating_betti_sequence(pd)
+        
+        print(betti_sequence)
+        plt.xlim([0,1])
+        plt.plot([i * betti_sequence_range for i in range(len(betti_sequence))],betti_sequence)
+        
+        plt.savefig("bitti_test{0}.png".format(i+1))
+        
+#        death_birth = calc_death_birth(pd,death_birth,i)
+#        output_picture(pd,picture_names[i])
+#        output_text(pd)
+        
+print("Done")
+>>>>>>> af2ea8e5afbf630187550108f75019362517a0de

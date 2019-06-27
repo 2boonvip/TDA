@@ -20,4 +20,11 @@ def data():
             Y_new.append(j+1)
     return np.array(X_new),np.array(Y_new)
 
-data()
+X,Y = data()
+std = np.std(X,axis=0)
+#X = X - np.amin(X,axis=0)
+for i in range(len(X)):
+    for j in range(len(X[i])):
+        if X[i][j] == 0:
+            X[i][j] = 1
+X = (X - np.amin(X,axis=0)) /( np.amax(X,axis=0))
