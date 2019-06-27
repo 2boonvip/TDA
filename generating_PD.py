@@ -7,30 +7,28 @@ import math
 import homcloud.interface as hc  # HomCloudのインターフェス
 import homcloud.paraview_interface as pv  # 3次元可視化用
 import csv
+import glob
 
 betti_sequence_number = 128 #betti系列を生成する際のデータ数
 betti_sequence_range = 1/betti_sequence_number #betti系列を生成する際のデータ間隔
 
-data_ranges = [(2287,4401),(6423,8217),(12534,14521),(17995,19729),(23545,25402),
-               (28883,30840),(33733,35397),(37023,38752),(42750,44576),(48325,50030),
-               (53862,55616),(59786,61578)]
-path = "1_raw_data_13-12_22.03.16.txt" #対象データファイル名を指定
-channels = ['channel1','channel2','channel3',"channel4"]#対象チャンネル名
+
+channels = ['channel1','channel2','channel3','channel4','channel5','channel6','channel7','channel8']#対象チャンネル名
 
 output_text_name = ['']
 
 
 #対象データ成型
 def data_processing(path): 
-    data = pandas.read_table(path)
+    data = pandas.read_csv(path)
     return data
 
 #3次元遅れ座標生成           
-def delay(data,channel,data_range):
+def delay(data,channel):
     line = data.loc[:,channel]
     pointcloud = np.array([0,0,0])
     
-    for i in range(data_range[0],data_range[1]):
+    for i in range(0,len(line)-2):
         tmp = np.array([line[i],line[i+1],line[i+2]]) 
         pointcloud = np.c_[pointcloud,tmp]
 
@@ -66,7 +64,6 @@ def output_PD_text(pd):
             f.write('{0},{1}\n'.format(birth,death))
             
 def output_betti_text(betti_sequence,txt_name):
-
     with open(txt_name,'w') as f:
         for i in betti_sequence:
             f.write('{0} '.format(i))
@@ -107,33 +104,37 @@ def generating_betti_sequence(pd):
     return betti_sequence
 
 #以下実行部
-          
-data = data_processing(path)
-death_birth = []
-
-for i in range(len(data_ranges)):
-#    for channel,pic_name,txt_name in zip(channels,picture_names,output_text_name):
-
-        data = data_processing(path)
-        
-        pointcloud = delay(data,'channel2',data_ranges[i])
+for i in range(1,7):
+    files = glob.glob("./datasets/status{0}/*".format(i))
     
-        #PD生成・保存
-        hc.PDList.from_alpha_filtration(pointcloud, 
-                                        save_to="pointcloud.idiagram",
-                                        save_boundary_map=True)
+    count = 1
+    for f in files:
+    
+        path = f #対象データファイル名を指定
         
-        pdlist = hc.PDList("pointcloud.idiagram")
+        data = data_processing(path)
+        death_birth = []
         
-        pd = [pdlist.dth_diagram(i) for i in range(3)] #0~2次元のPDを生成
-        pd = normalization(pd)#データの正規化
-        betti_sequence = generating_betti_sequence(pd)
+        for channel in channels:
+    
+            data = data_processing(path)
+            
+            pointcloud = delay(data,channel)
         
-#        output_betti_picture(betti_sequence)
-        output_betti_text(betti_sequence,"test{0}.txt".format(i+1))
-        
-#        death_birth = calc_death_birth(pd,death_birth,i)
-#        output_picture(pd,picture_names[i])
-#        output_text(pd)
-        
-print("Done")
+            #PD生成・保存
+            hc.PDList.from_alpha_filtration(pointcloud, 
+                                            save_to="pointcloud.idiagram",
+                                            save_boundary_map=True)
+            
+            pdlist = hc.PDList("pointcloud.idiagram")
+            
+            pd = [pdlist.dth_diagram(i) for i in range(3)] #0~2次元のPDを生成
+            pd = normalization(pd)#データの正規化
+            betti_sequence = generating_betti_sequence(pd)
+            
+            output_betti_text(betti_sequence,"./datasets/betti{0}/".format(i)+ channel +"/betti_sequence{0}.txt".format(count))
+            
+            count += 1
+    
+            
+    print("Done")
